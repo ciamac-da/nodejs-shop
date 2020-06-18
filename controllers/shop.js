@@ -1,4 +1,5 @@
 const Product = require('../models/product');
+const { get } = require('../routes/shop');
 
 exports.getProducts = (req, res, next) => {
   Product.fetchAll(products => {
@@ -9,6 +10,12 @@ exports.getProducts = (req, res, next) => {
     });
   });
 };
+
+exports.getProduct = (req, res, next)=>{
+  const prodId = req.params.productId;
+  console.log(prodId);
+  res.redirect("/");
+}
 
 exports.getIndex = (req, res, next) => {
   Product.fetchAll(products => {
