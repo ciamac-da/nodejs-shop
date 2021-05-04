@@ -2,7 +2,7 @@ const path = require('path');
 
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const mongoConnect = require("./util/database");
 const errorController = require('./controllers/error');
 /* const rootDir = require("./util/path"); */
 const app = express();
@@ -21,4 +21,9 @@ app.use(shopRoutes);
 
 app.use(errorController.get404);
 
-app.listen(5005);
+
+mongoConnect(client => {
+    console.log(client)
+    app.listen(5005);
+})
+
