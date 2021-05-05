@@ -1,11 +1,14 @@
+if(process.env.NODE_ENV !== "production")
+require("dotenv").config()
 const path = require('path');
-
 const express = require('express');
 const bodyParser = require('body-parser');
-const mongoConnect = require("./util/database");
 const errorController = require('./controllers/error');
+const mongoose = require("mongoose")
 /* const rootDir = require("./util/path"); */
+
 const app = express();
+const PORT = process.env.PORT || 5005;
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -22,8 +25,18 @@ app.use(shopRoutes);
 app.use(errorController.get404);
 
 
-mongoConnect(client => {
-    console.log(client)
-    app.listen(5005);
-})
+
+mongoose.connect(
+    process.env.MongoURL, 
+    { useNewUrlParser: true },
+    { useUnifiedTopology: true }
+    )
+    .then(result => {
+        app.listen(PORT);
+    })
+    .catch(err => {
+        console.log(err)
+    })
+
+
 
