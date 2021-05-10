@@ -1,6 +1,7 @@
 const express = require('express');
-const { check, body } = require("express-validator/check")
+const { check, body } = require("express-validator/check");
 const authController = require('../controllers/auth');
+const User = require("../models/user");
 
 const router = express.Router();
 
@@ -8,39 +9,68 @@ router.get('/login', authController.getLogin);
 
 router.get('/signup', authController.getSignup);
 
-router.post('/login', authController.postLogin);
-
-router.post('/signup',
+router.post('/login', 
 [
-check("email")
-.isEmail()
-.withMessage("Please add a valid email!")
-.custom((value, {req}) => {
-    if(value === "test@test.com") {
-        throw new Error("This email address is forbidden")
-    }
-    return true;
-}),
-//body("password").isLength({min:12}).withMessage("Please enter at least 12 characters!")
-body("password", "Please enter at least 12 characters!").isLength({min:12}), // To avoid repeating message
-body("confirmPassword").custom((value, {req}) => {
-    if(value !== req.body.password) {
-        throw new Error("Passwords have to match!")
-    }
-    return true
-})
-], 
-authController.postSignup);
+    body("email")
+    .isEmail()
+    .withMessage("Please enter a valid email address!")
+    .normalizeEmail(),
+    body("password", "Password has to be valid!")
+    .isLength({min:12})
+    .trim()
 
-router.post('/logout', authController.postLogout);
+]
+,authController.postLogin
+);
 
-router.get('/reset', authController.getReset);
+router.post(
+    '/signup',
+    [
+      check('email')
+        .isEmail()
+        .withMessage('Please enter a valid email.')
+        .custom((value, { req }) => {
+          // if (value === 'test@test.com') {
+          //   throw new Error('This email address if forbidden.');
+          // }
+          // return true;
+          return User.findOne({ email: value }).then(userDoc => {
+            if (userDoc) {
+              return Promise.reject(
+                'E-Mail exists already, please pick a different one.'
+              );
+            }
+          });
+        })
+        .normalizeEmail(),
+      body(
+        'password',
+        'Please enter at leaset 12 characters.'
+      )
+        .isLength({ min: 12 })
+        .trim(),
+      body('confirmPassword')
+      .trim()
+      .custom((value, { req }) => {
+        if (value !== req.body.password) {
+          throw new Error('Passwords have to match!');
+        }
+        return true;
+      })
+    ],
+    authController.postSignup
+  );
+  
 
-router.post('/reset', authController.postReset);
+            router.post('/logout', authController.postLogout);
 
-router.get('/reset/:token', authController.getNewPassword);
+            router.get('/reset', authController.getReset);
 
-router.post('/new-password', authController.postNewPassword);
+            router.post('/reset', authController.postReset);
+
+            router.get('/reset/:token', authController.getNewPassword);
+
+            router.post('/new-password', authController.postNewPassword);
 
 
-module.exports = router;
+            module.exports = router;
