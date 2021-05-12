@@ -10,7 +10,7 @@ const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const flash = require('connect-flash');
 const csrf = require('csurf');
-
+const multer = require("multer");
 
 const app = express();
 const PORT = process.env.PORT || 5005;
@@ -21,6 +21,27 @@ const store = new MongoDBStore({
 
 const csrfProtection = csrf();
 
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString() + "-" + file.originalname)
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  if(
+    file.mimeType === "image/png" ||
+    file.mimeType === "image/jpg" || 
+    filename.mimeType === "image.jpeg"
+    ){
+    cb(null, true)
+  }else {
+    cb(null, false)
+  }
+}
+
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -30,6 +51,7 @@ const shopRoutes = require('./routes/shop');
 const authRoutes = require('./routes/auth');
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(multer({storage: fileStorage}).single("image"));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(
   session({
@@ -48,10 +70,14 @@ app.use((req, res, next) => {
   } 
   User.findById(req.session.user._id)
     .then(user => {
+      if(!user) {
+        return next();
+      }
       req.user = user;
-      next();
     })
-      .catch(err => console.log(err));
+      .catch(err => { 
+      throw new Error(err)  
+      });
   });
 
 
@@ -71,7 +97,7 @@ app.use(errorController.get404);
 mongoose.connect(
     process.env.MongoURL, 
     { useNewUrlParser: true },
-    { useUnifiedTopology: true }
+    { useUnifiedTopology: true },
     )
      .then(result => {
     app.listen(PORT);
