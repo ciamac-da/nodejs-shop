@@ -154,6 +154,7 @@ exports.postSignup = (req, res, next) => {
     .catch(err => {
       console.log(err);
     });
+    
 };
 
 exports.postLogout = (req, res, next) => {
