@@ -22,7 +22,7 @@ exports.getLogin = (req, res, next) => {
   } else {
     message = null;
   }
-  res.status(422).render('auth/login', {
+  res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
     errorMessage: message,
@@ -81,7 +81,7 @@ exports.postLogin = (req, res, next) => {
             email:email,
             password:password
           },
-          validationErrors:[{param:"email", param:"password"}]
+          validationErrors: []
         })
       }
       bcrypt
@@ -103,7 +103,7 @@ exports.postLogin = (req, res, next) => {
               email:email,
               password:password
             },
-            validationErrors:[{param:"email", param:"password"}]
+            validationErrors: []
           })
         })
         .catch(err => {
@@ -129,8 +129,7 @@ exports.postSignup = (req, res, next) => {
         confirmPassword:req.body.confirmPassword 
       },
       validationErrors: errors.array()
-    }
-    )
+    });
   }
   bcrypt
     .hash(password, 12)
@@ -195,11 +194,11 @@ crypto.randomBytes(32, (err, buffer) => {
     }
     user.resetToken = token;
     user.resetTokenExpiration = Date.now() + 3600000; // means 1 hour!
-    user.save();
+    return user.save();
   })
   .then(result =>{
     res.redirect("/");
-    transporter.sendMail({
+    /* transporter.sendMail({
       to: req.body.email,
       from: 'hakomartian@gmail.com',
       subject: 'Password reset!',
@@ -207,7 +206,7 @@ crypto.randomBytes(32, (err, buffer) => {
       <h1>You requested a password reset!</h1>
       <p>Click this <a href="http://localhost:5005/reset/${token}">link</a> to set a new password</p>
       `
-    });
+    }); */
   })
   .catch(err => console.log(err))
 });
